@@ -1,0 +1,113 @@
+@import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=VT323&display=swap');
+
+:root {
+  --bg: #0a0f0a;
+  --bg-panel: #0d130d;
+  --bg-surface: #111811;
+  --green: #00ff41;
+  --green-dim: #00c032;
+  --green-dark: #004d14;
+  --green-muted: #1a3d1a;
+  --amber: #ffb000;
+  --red: #ff3131;
+  --text: #c8ffc8;
+  --text-dim: #5a8c5a;
+  --border: #1f3d1f;
+  --border-bright: #00ff41;
+  --font-mono: 'Share Tech Mono', monospace;
+  --font-display: 'VT323', monospace;
+  --scanline: repeating-linear-gradient(
+    0deg,
+    transparent,
+    transparent 2px,
+    rgba(0, 0, 0, 0.15) 2px,
+    rgba(0, 0, 0, 0.15) 4px
+  );
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font-mono);
+  font-size: 15px;
+  line-height: 1.6;
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+/* Scanline overlay on everything */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background: var(--scanline);
+  pointer-events: none;
+  z-index: 9999;
+  opacity: 0.4;
+}
+
+/* Scrollbar */
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: var(--bg); }
+::-webkit-scrollbar-thumb { background: var(--green-dark); }
+::-webkit-scrollbar-thumb:hover { background: var(--green-dim); }
+
+/* Shared utility classes */
+.terminal-border {
+  border: 1px solid var(--border);
+  border-radius: 2px;
+}
+
+.terminal-border-bright {
+  border: 1px solid var(--border-bright);
+  border-radius: 2px;
+}
+
+.blink {
+  animation: blink 1s step-end infinite;
+}
+
+@keyframes blink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0; }
+}
+
+@keyframes flicker {
+  0%, 100% { opacity: 1; }
+  92% { opacity: 1; }
+  93% { opacity: 0.85; }
+  94% { opacity: 1; }
+  96% { opacity: 0.9; }
+  97% { opacity: 1; }
+}
+
+@keyframes scanin {
+  from { opacity: 0; transform: translateY(6px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.scanin {
+  animation: scanin 0.3s ease forwards;
+}
+
+@keyframes textglow {
+  0%, 100% { text-shadow: 0 0 6px var(--green); }
+  50%       { text-shadow: 0 0 14px var(--green), 0 0 2px var(--green); }
+}
+
+@keyframes growBar {
+  from { width: 0%; }
+  to   { width: 100;}
+}
+
+@keyframes rotateIcon {
+  0%   { transform: rotate(0deg); }
+  50%  { transform: rotate(90deg); }
+  100% { transform: rotate(0deg); }
+}
+
+.glow {
+  animation: textglow 3s ease-in-out infinite;
+}
