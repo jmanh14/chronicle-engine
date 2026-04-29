@@ -35,6 +35,7 @@ export default function GameScreen() {
   const [isEnding, setIsEnding]       = useState(false)
   const hasStarted                    = useRef(false)
   const bottomRef                     = useRef(null)
+  const [consequences, setConsequences] = useState([])
 
   useEffect(() => {
     if (hasStarted.current) return
@@ -79,6 +80,7 @@ export default function GameScreen() {
     setCurrentBeat(beat)
     setChoices(beat.choices)
     setInventory(beat.inventory)
+    setConsequences(beat.consequences ?? [])
     setStoryTitle(beat.title)
     setTurn(1)
     setPendingBeat(null)
@@ -131,9 +133,11 @@ export default function GameScreen() {
         inventory,
         choice: choice.id,
         choiceText: choice.text,
+        consequences,
       })
 
       setInventory(beat.inventory)
+      setConsequences(beat.consequences ?? consequences)
       setTurn(t => t + 1)
 
       if (beat.isEnding) {

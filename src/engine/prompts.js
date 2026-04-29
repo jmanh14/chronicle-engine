@@ -21,17 +21,22 @@ Respond ONLY with a valid JSON object in exactly this structure, no markdown, no
     "enemies": [],
     "status": ["Beginning of the journey"]
   },
+  "consequences": [],
   "isEnding": false,
   "title": "A short evocative working title for this story (4-6 words)"
 }`
 }
 
-export function buildContinuationPrompt({ genre, tone, protagonist, history, inventory, choice }) {
+export function buildContinuationPrompt({ genre, tone, protagonist, history, inventory, choice, choiceText, consequences }) {
   const historyText = history
     .map((beat, i) => `--- Beat ${i + 1} ---\n${beat.story}\nPlayer chose: ${beat.choiceText}`)
     .join('\n\n')
 
   const inventoryText = JSON.stringify(inventory, null, 2)
+
+  const consequencesText = consequences && consequences.length > 0
+    ? `\nACTIVE CONSEQUENCES (these must influence the story going forward):\n${consequences.map((c, i) => `${i + 1}. ${c}`).join('\n')}`
+    : ''
 
   return `You are a narrative engine for an interactive ${tone.toLowerCase()} ${genre.toLowerCase()} story.
 Protagonist: ${protagonist}
@@ -41,14 +46,17 @@ ${historyText}
 
 CURRENT INVENTORY STATE:
 ${inventoryText}
+${consequencesText}
 
-The player just chose: "${choice}"
+The player just chose: "${choiceText}"
 
-Continue the story naturally from this choice. You decide if the story should end based on narrative flow — a satisfying conclusion can happen anywhere from turn 4 onward. Earlier endings are fine if the moment is right. Do not force a long story.
+Continue the story naturally from this choice. Active consequences MUST ripple into the narrative — NPCs remember past actions, doors that were closed stay closed, debts get called in. Make the world feel reactive to every decision made so far.
+
+You decide if the story should end based on narrative flow — a satisfying conclusion can happen anywhere from turn 4 onward.
 
 Respond ONLY with a valid JSON object in exactly this structure, no markdown, no explanation:
 {
-  "story": "2-4 paragraphs continuing the narrative from the player's choice. If isEnding is true, write a proper conclusion.",
+  "story": "2-4 paragraphs continuing the narrative from the player's choice.",
   "choices": [
     { "id": "a", "text": "Short action or decision (max 12 words)" },
     { "id": "b", "text": "Short action or decision (max 12 words)" },
@@ -60,6 +68,9 @@ Respond ONLY with a valid JSON object in exactly this structure, no markdown, no
     "enemies": ["list of known threats or antagonists"],
     "status": ["current condition, wounds, mental state, etc"]
   },
+  "consequences": [
+    "carry forward all existing consequences plus add any new ones from this beat. Each consequence is one sentence describing a lasting effect of a choice made."
+  ],
   "isEnding": false,
   "title": "A short evocative working title for this story (4-6 words)"
 }
