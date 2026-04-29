@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { motion } from 'framer-motion'
 
 const LABELS = ['A', 'B', 'C']
 
@@ -6,11 +7,15 @@ export default function ChoiceButton({ choice, index, onClick, disabled }) {
   const [hovered, setHovered] = useState(false)
 
   return (
-    <button
+    <motion.button
       onClick={onClick}
       disabled={disabled}
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
+      initial={{ opacity: 0, x: -10 }}
+      animate={{ opacity: 1, x: 0 }}
+      transition={{ duration: 0.25, delay: index * 0.08, ease: 'easeOut' }}
+      whileTap={{ scale: 0.98 }}
       style={{
         display: 'flex',
         alignItems: 'center',
@@ -23,7 +28,7 @@ export default function ChoiceButton({ choice, index, onClick, disabled }) {
         fontSize: 14,
         cursor: disabled ? 'not-allowed' : 'pointer',
         textAlign: 'left',
-        transition: 'all 0.15s',
+        transition: 'background 0.15s, border 0.15s, color 0.15s',
         borderRadius: 2,
         width: '100%',
         opacity: disabled ? 0.5 : 1,
@@ -38,6 +43,6 @@ export default function ChoiceButton({ choice, index, onClick, disabled }) {
         {LABELS[index]}
       </span>
       <span>{choice.text}</span>
-    </button>
+    </motion.button>
   )
 }
