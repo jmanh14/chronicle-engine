@@ -13,6 +13,25 @@ export default function SetupScreen({ navigate, setConfig }) {
 
   const SCENARIO_LIMIT = 150
 
+  const NAMES = [
+    'Kael', 'Lyra', 'Doran', 'Seraphine', 'Vex', 'Mira', 'Theron', 'Zara',
+    'Oryn', 'Nyx', 'Caden', 'Elara', 'Rook', 'Sable', 'Finn', 'Isolde',
+    'Draven', 'Vera', 'Colt', 'Astrid', 'Jace', 'Nova', 'Silas', 'Wren',
+    'Bram', 'Talia', 'Gideon', 'Rhea', 'Zephyr', 'Maris', 'Onyx', 'Celeste',
+    'Reed', 'Vesper', 'Hawk', 'Freya', 'Omen', 'Lena', 'Cruz', 'Sylvie',
+    'Dante', 'Iris', 'Corvin', 'Sage', 'Blaze', 'Nora', 'Griffon', 'Ada',
+    'Valor', 'Petra', 'James', 'Marcus', 'Leon', 'Victor', 'Adrian', 'Ethan', 'Cole', 'Owen',
+    'Dean', 'Miles', 'Roman', 'Seth', 'Grant', 'Reid', 'Nash', 'Troy',
+    'Blake', 'Chase', 'Kane', 'Luke', 'Elena', 'Sara', 'Maya', 'Claire', 'Diana', 'Rose', 'Jade', 'Kate',
+    'Anna', 'Leah', 'Grace', 'Quinn', 'Hope', 'Dawn', 'Faith', 'Skye',
+    'Brooke', 'Paige', 'Hazel', 'Eve', 'Alex', 'Jordan', 'Morgan', 'River', 'Avery', 'Casey', 'Drew', 'Jamie',
+    'Parker', 'Reese', 'Riley', 'Rowan', 'Sam', 'Taylor', 'Charlie'
+  ]
+
+  function randomName() {
+    return NAMES[Math.floor(Math.random() * NAMES.length)]
+  }
+
   const ready = genre && tone && protagonist.trim().length > 0
 
   const handleBegin = () => {
@@ -106,6 +125,34 @@ export default function SetupScreen({ navigate, setConfig }) {
                 caretColor: 'var(--green)',
               }}
             />
+            {/* Random name button */}
+            <button
+              onClick={() => setProtagonist(randomName())}
+              title="Random name"
+              style={{
+                background: 'transparent',
+                border: '1px solid var(--border)',
+                color: 'var(--text-dim)',
+                fontFamily: 'var(--font-mono)',
+                fontSize: 13,
+                padding: '4px 10px',
+                cursor: 'pointer',
+                letterSpacing: 1,
+                flexShrink: 0,
+                transition: 'all 0.15s',
+                borderRadius: 2,
+              }}
+              onMouseEnter={e => {
+                e.target.style.borderColor = 'var(--green)'
+                e.target.style.color = 'var(--green)'
+              }}
+              onMouseLeave={e => {
+                e.target.style.borderColor = 'var(--border)'
+                e.target.style.color = 'var(--text-dim)'
+              }}
+            >
+              ⟳
+            </button>
             <span className="blink" style={{ color: 'var(--green)' }}>█</span>
           </div>
         </Section>
