@@ -125,6 +125,7 @@ export default function SetupScreen({ navigate, setConfig }) {
                 caretColor: 'var(--green)',
               }}
             />
+            <span className="blink" style={{ color: 'var(--green)' }}>█</span>
             {/* Random name button */}
             <button
               onClick={() => setProtagonist(randomName())}
@@ -153,7 +154,6 @@ export default function SetupScreen({ navigate, setConfig }) {
             >
               ⟳
             </button>
-            <span className="blink" style={{ color: 'var(--green)' }}>█</span>
           </div>
         </Section>
 
