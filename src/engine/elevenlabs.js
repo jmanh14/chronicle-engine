@@ -39,6 +39,9 @@ export async function fetchAudio(text, tone) {
   }
 
   const data = await response.json()
+  console.log('ElevenLabs keys:', Object.keys(data))
+  console.log('audio_base64 length:', data.audio_base64?.length)
+  console.log('alignment:', data.alignment)
   const audioSrc = `data:audio/mpeg;base64,${data.audio_base64}`
   const alignment = data.alignment
 
