@@ -16,7 +16,7 @@ export function getVoiceForTone(tone) {
 export async function fetchAudio(text, tone) {
   const voiceId = getVoiceForTone(tone)
 
-  const response = await fetch(`https://api.elevenlabs.io/v1/text-to-speech/${voiceId}`, {
+  const response = await fetch(`https://api.elevenlabs.io/v1/text-to-speech/${voiceId}/with-timestamps`, {
     method: 'POST',
     headers: {
       'xi-api-key': API_KEY,
@@ -38,9 +38,14 @@ export async function fetchAudio(text, tone) {
     throw new Error(`ElevenLabs error: ${response.status}`)
   }
 
-  const arrayBuffer = await response.arrayBuffer()
-  const base64 = btoa(
-    new Uint8Array(arrayBuffer).reduce((data, byte) => data + String.fromCharCode(byte), '')
-  )
-  return `data:audio/mpeg;base64,${base64}`
+  const data = await response.json()
+  console.log('ElevenLabs response:', data)
+
+  // convert audio base64 to data URI
+  const audioSrc = `data:audio/mpeg;base64,${data.audio_base64}`
+
+  // alignment data contains character timestamps
+  const alignment = data.alignment
+
+  return { audioSrc, alignment }
 }
