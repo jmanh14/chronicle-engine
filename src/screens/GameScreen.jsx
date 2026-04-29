@@ -136,6 +136,8 @@ export default function GameScreen() {
         consequences,
       })
 
+      console.log('Beat received:', beat.isEnding, beat.story?.slice(0, 50))
+
       setInventory(beat.inventory)
       setConsequences(beat.consequences ?? consequences)
       setTurn(t => t + 1)
@@ -151,52 +153,56 @@ export default function GameScreen() {
         setChoices([])
         setLoading(false)
 
-        let audioData = null
-        try {
-          audioData = await fetchAudio(beat.story, config.tone)
-        } catch (audioErr) {
-          console.error('Audio fetch failed:', audioErr)
-        }
-
-        if (narrateOn && audioData) {
-          setSentenceTimes(audioData.sentenceTimes ?? [])
-          setAudioTime(0)
-          await new Promise(resolve => {
-            playAudio(
-              audioData.audioSrc,
-              () => {
-                setAudioState('idle')
-                resolve()
-              },
-              (t) => setAudioTime(t)
-            )
-            setAudioState('playing')
-          })
+        if (narrateOn) {
+          let audioData = null
+          try {
+            audioData = await fetchAudio(beat.story, config.tone)
+          } catch (audioErr) {
+            console.error('Audio fetch failed:', audioErr)
+          }
+          if (audioData) {
+            setSentenceTimes(audioData.sentenceTimes ?? [])
+            setAudioTime(0)
+            await new Promise(resolve => {
+              playAudio(
+                audioData.audioSrc,
+                () => {
+                  setAudioState('idle')
+                  resolve()
+                },
+                (t) => setAudioTime(t)
+              )
+              setAudioState('playing')
+            })
+          }
         }
 
         setIsEnding(true)
 
       } else {
-        let audioData = null
-        try {
-          audioData = await fetchAudio(beat.story, config.tone)
-        } catch (audioErr) {
-          console.error('Audio fetch failed:', audioErr)
-        }
         setCurrentBeat(beat)
         setChoices(beat.choices)
         setLoading(false)
-        if (narrateOn && audioData) {
-          setSentenceTimes(audioData.sentenceTimes ?? [])
-          setAudioTime(0)
-          await playAudio(
-            audioData.audioSrc,
-            () => setAudioState('idle'),
-            (t) => setAudioTime(t)
-          )
-          setAudioState('playing')
+        if (narrateOn) {
+          let audioData = null
+          try {
+            audioData = await fetchAudio(beat.story, config.tone)
+          } catch (audioErr) {
+            console.error('Audio fetch failed:', audioErr)
+          }
+          if (audioData) {
+            setSentenceTimes(audioData.sentenceTimes ?? [])
+            setAudioTime(0)
+            await playAudio(
+              audioData.audioSrc,
+              () => setAudioState('idle'),
+              (t) => setAudioTime(t)
+            )
+            setAudioState('playing')
+          }
         }
       }
+
     } catch (err) {
       setError('SIGNAL LOST. Transmission interrupted.')
       setLoading(false)
