@@ -39,13 +39,37 @@ export async function fetchAudio(text, tone) {
   }
 
   const data = await response.json()
-  console.log('ElevenLabs response:', data)
-
-  // convert audio base64 to data URI
   const audioSrc = `data:audio/mpeg;base64,${data.audio_base64}`
-
-  // alignment data contains character timestamps
   const alignment = data.alignment
 
-  return { audioSrc, alignment }
+  // build sentence timing map from character timestamps
+  const sentenceTimes = buildSentenceTimes(text, alignment)
+
+  return { audioSrc, sentenceTimes }
+}
+
+function buildSentenceTimes(text, alignment) {
+  if (!alignment) return []
+
+  const { characters, character_start_times_seconds, character_end_times_seconds } = alignment
+
+  // split into sentences
+  const sentenceRegex = /[^.!?]+[.!?]+/g
+  const sentences = []
+  let match
+
+  while ((match = sentenceRegex.exec(text)) !== null) {
+    sentences.push({
+      text: match[0].trim(),
+      start: match.index,
+      end: match.index + match[0].length,
+    })
+  }
+
+  // map character indices to timestamps
+  return sentences.map(({ text: sentText, start, end }) => {
+    const startTime = character_start_times_seconds[start] ?? 0
+    const endTime   = character_end_times_seconds[Math.min(end - 1, character_end_times_seconds.length - 1)] ?? 0
+    return { text: sentText, startTime, endTime }
+  })
 }

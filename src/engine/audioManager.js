@@ -1,4 +1,5 @@
 let audioEl = null
+let progressInterval = null
 
 function getOrCreateAudioEl() {
   if (!audioEl) {
@@ -17,27 +18,34 @@ export function unlockAudio() {
 }
 
 export function stopAudio() {
+  if (progressInterval) {
+    clearInterval(progressInterval)
+    progressInterval = null
+  }
   if (audioEl) {
     audioEl.pause()
-    // don't clear src or reset currentTime — keeps position
   }
 }
 
 export function clearAudio() {
-  // call this when moving to a NEW beat to fully reset
+  stopAudio()
   if (audioEl) {
-    audioEl.pause()
     audioEl.src = ''
     audioEl.currentTime = 0
   }
 }
 
-export async function playAudio(url, onEnd, resume = false) {
+export async function playAudio(audioSrc, onEnd, onTimeUpdate, resume = false) {
   const el = getOrCreateAudioEl()
 
   if (resume && el.src && el.currentTime > 0) {
-    // resume from where we left off
     el.onended = () => onEnd?.()
+    if (progressInterval) clearInterval(progressInterval)
+    if (onTimeUpdate) {
+      progressInterval = setInterval(() => {
+        onTimeUpdate(el.currentTime)
+      }, 50)
+    }
     try {
       await el.play()
     } catch (err) {
@@ -46,10 +54,22 @@ export async function playAudio(url, onEnd, resume = false) {
     return
   }
 
-  // new audio
   clearAudio()
-  el.src = url
-  el.onended = () => onEnd?.()
+  el.src = audioSrc
+  el.onended = () => {
+    if (progressInterval) {
+      clearInterval(progressInterval)
+      progressInterval = null
+    }
+    onEnd?.()
+  }
+
+  if (onTimeUpdate) {
+    progressInterval = setInterval(() => {
+      onTimeUpdate(el.currentTime)
+    }, 50)
+  }
+
   try {
     await el.play()
   } catch (err) {
@@ -57,10 +77,10 @@ export async function playAudio(url, onEnd, resume = false) {
   }
 }
 
-export function isPlaying() {
-  return audioEl !== null && !audioEl.paused
-}
-
 export function isPaused() {
   return audioEl !== null && audioEl.paused && audioEl.currentTime > 0
+}
+
+export function isPlaying() {
+  return audioEl !== null && !audioEl.paused
 }

@@ -31,6 +31,8 @@ export default function GameScreen() {
   const [pendingUrl, setPendingUrl]   = useState(null)
   const hasStarted                    = useRef(false)
   const bottomRef                     = useRef(null)
+  const [sentenceTimes, setSentenceTimes] = useState([])
+  const [audioTime, setAudioTime]         = useState(0)
 
   useEffect(() => {
     if (hasStarted.current) return
@@ -55,14 +57,14 @@ export default function GameScreen() {
     setError(null)
     try {
       const beat = await generateOpening(config)
-      let url = null
+      let audioData = null
       try {
-        url = await fetchAudio(beat.story, config.tone)
+        audioData = await fetchAudio(beat.story, config.tone)
       } catch (audioErr) {
         console.error('Audio fetch failed:', audioErr)
       }
       setPendingBeat(beat)
-      setPendingUrl(url)
+      setPendingUrl(audioData)
       setBeatReady(true)
     } catch (err) {
       console.error('Story generation failed:', err)
@@ -71,7 +73,7 @@ export default function GameScreen() {
     }
   }
 
-  async function revealBeat(beat, url) {
+  async function revealBeat(beat, audioData) {
     setCurrentBeat(beat)
     setChoices(beat.choices)
     setInventory(beat.inventory)
@@ -79,8 +81,14 @@ export default function GameScreen() {
     setTurn(1)
     setPendingBeat(null)
     setPendingUrl(null)
-    if (narrateOn && url) {
-      await playAudio(url, () => setAudioState('idle'))
+    if (narrateOn && audioData) {
+      setSentenceTimes(audioData.sentenceTimes ?? [])
+      setAudioTime(0)
+      await playAudio(
+        audioData.audioSrc,
+        () => setAudioState('idle'),
+        (t) => setAudioTime(t)
+      )
       setAudioState('playing')
     }
   }
@@ -135,17 +143,23 @@ export default function GameScreen() {
         setMovieCard({ title: beat.title, genre: config.genre, tone: config.tone })
         navigate('ending')
       } else {
-        let url = null
+        let audioData = null
         try {
-          url = await fetchAudio(beat.story, config.tone)
+          audioData = await fetchAudio(beat.story, config.tone)
         } catch (audioErr) {
           console.error('Audio fetch failed:', audioErr)
         }
         setCurrentBeat(beat)
         setChoices(beat.choices)
         setLoading(false)
-        if (narrateOn && url) {
-          await playAudio(url, () => setAudioState('idle'))
+        if (narrateOn && audioData) {
+          setSentenceTimes(audioData.sentenceTimes ?? [])
+          setAudioTime(0)
+          await playAudio(
+            audioData.audioSrc,
+            () => setAudioState('idle'),
+            (t) => setAudioTime(t)
+          )
           setAudioState('playing')
         }
       }
@@ -168,12 +182,18 @@ export default function GameScreen() {
       if (currentBeat) {
         if (isPaused()) {
           setAudioState('playing')
-          await playAudio(null, () => setAudioState('idle'), true)
+          await playAudio(null, () => setAudioState('idle'), (t) => setAudioTime(t), true)
         } else {
           setAudioState('loading')
           try {
-            const url = await fetchAudio(currentBeat.story, config.tone)
-            await playAudio(url, () => setAudioState('idle'))
+            const audioData = await fetchAudio(currentBeat.story, config.tone)
+            setSentenceTimes(audioData.sentenceTimes ?? [])
+            setAudioTime(0)
+            await playAudio(
+              audioData.audioSrc,
+              () => setAudioState('idle'),
+              (t) => setAudioTime(t)
+            )
             setAudioState('playing')
           } catch {
             setAudioState('idle')
@@ -304,7 +324,11 @@ export default function GameScreen() {
             {/* Current beat with glitch effect */}
             {currentBeat && !loading && (
               <div className="scanin">
-                <GlitchText text={currentBeat.story} />
+                <GlitchText 
+                  text={currentBeat.story}
+                  sentenceTimes={sentenceTimes}
+                  currentTime={audioTime}
+                 />
               </div>
             )}
 
