@@ -37,7 +37,7 @@ export async function generateOpening(config) {
   return callClaude(prompt)
 }
 
-export async function generateContinuation({ config, history, inventory, choice, choiceText, consequences }) {
+export async function generateContinuation({ config, history, inventory, choice, choiceText, consequences, location, timeOfDay, tension }) {
   const prompt = buildContinuationPrompt({
     genre: config.genre,
     tone: config.tone,
@@ -47,6 +47,9 @@ export async function generateContinuation({ config, history, inventory, choice,
     choice,
     choiceText,
     consequences,
+    location,
+    timeOfDay,
+    tension,
   })
   return callClaude(prompt)
 }

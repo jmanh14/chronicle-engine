@@ -36,6 +36,9 @@ export default function GameScreen() {
   const hasStarted                    = useRef(false)
   const bottomRef                     = useRef(null)
   const [consequences, setConsequences] = useState([])
+  const [location, setLocation]     = useState(null)
+  const [timeOfDay, setTimeOfDay]   = useState(null)
+  const [tension, setTension]       = useState(1)
 
   useEffect(() => {
     if (hasStarted.current) return
@@ -81,6 +84,9 @@ export default function GameScreen() {
     setChoices(beat.choices)
     setInventory(beat.inventory)
     setConsequences(beat.consequences ?? [])
+    setLocation(beat.location ?? null)
+    setTimeOfDay(beat.timeOfDay ?? null)
+    setTension(beat.tension ?? 1)
     setStoryTitle(beat.title)
     setTurn(1)
     setPendingBeat(null)
@@ -134,12 +140,16 @@ export default function GameScreen() {
         choice: choice.id,
         choiceText: choice.text,
         consequences,
+        location,
+        timeOfDay,
+        tension,
       })
-
-      console.log('Beat received:', beat.isEnding, beat.story?.slice(0, 50))
 
       setInventory(beat.inventory)
       setConsequences(beat.consequences ?? consequences)
+      setLocation(beat.location ?? location)
+      setTimeOfDay(beat.timeOfDay ?? timeOfDay)
+      setTension(beat.tension ?? tension)
       setTurn(t => t + 1)
 
       if (beat.isEnding) {
@@ -299,6 +309,8 @@ export default function GameScreen() {
                 </div>
                 <div style={{ fontSize: 'clamp(9px, 1.2vw, 11px)', color: 'var(--text-dim)', letterSpacing: 2, marginTop: 2 }}>
                   {config.genre.toUpperCase()} // {config.tone.toUpperCase()} // TURN {turn}
+                  {location && ` // ${location.toUpperCase()}`}
+                  {timeOfDay && ` // ${timeOfDay.toUpperCase()}`}
                 </div>
               </div>
 
