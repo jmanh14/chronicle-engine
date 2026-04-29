@@ -3,7 +3,7 @@ import { useStore } from '../store'
 import { loadAllStories, deleteStory } from '../storage/shelf'
 import MovieCard from '../components/MovieCard'
 
-export default function ShelfScreen({ navigate }) {
+export default function ShelfScreen() {
   const navigate = useStore(s => s.navigate)
   const [stories, setStories] = useState([])
   const [loading, setLoading] = useState(true)

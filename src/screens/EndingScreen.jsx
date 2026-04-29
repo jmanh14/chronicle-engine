@@ -4,7 +4,7 @@ import { generateMovieCard } from '../engine/api'
 import { saveStory } from '../storage/shelf'
 import MovieCard from '../components/MovieCard'
 
-export default function EndingScreen({ config, story, movieCard, setMovieCard, navigate }) {
+export default function EndingScreen() {
   const navigate = useStore(s => s.navigate)
   const config = useStore(s => s.config)
   const story = useStore(s => s.story)

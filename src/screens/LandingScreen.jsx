@@ -2,7 +2,7 @@ import { useState, useRef } from 'react'
 import { unlockAudio } from '../engine/audioManager'
 import { useStore } from '../store'
 
-export default function LandingScreen({ navigate }) {
+export default function LandingScreen() {
   const navigate = useStore(s => s.navigate)
   const [showHelp, setShowHelp] = useState(false)
   const helpAudioRef = useRef(null)

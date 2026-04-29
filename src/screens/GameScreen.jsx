@@ -9,7 +9,7 @@ import ChoiceButton from '../components/ChoiceButton'
 import BootSequence from '../components/BootSequence'
 import GlitchText from '../components/GlitchText'
 
-export default function GameScreen({ config, story, setStory, inventory, setInventory, setMovieCard, navigate }) {
+export default function GameScreen() {
   const navigate     = useStore(s => s.navigate)
   const config       = useStore(s => s.config)
   const story        = useStore(s => s.story)

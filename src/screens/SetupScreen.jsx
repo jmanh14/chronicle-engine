@@ -5,7 +5,7 @@ import { unlockAudio } from '../engine/audioManager'
 const GENRES = ['Fantasy', 'Horror', 'Sci-Fi', 'Western', 'Noir', 'Post-Apocalyptic', 'Isekai', 'Pirate', 'Alien Invasion', 'Lovecraftian', 'Dreams']
 const TONES  = ['Grim', 'Heroic', 'Comedic', 'Mysterious', 'Tense', 'Melancholic']
 
-export default function SetupScreen({ navigate, setConfig }) {
+export default function SetupScreen() {
   const navigate = useStore(s => s.navigate)
   const setConfig = useStore(s => s.setConfig)
   const [genre, setGenre]         = useState(null)
