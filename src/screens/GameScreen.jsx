@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from 'react'
+import { useStore } from '../store'
 import { generateOpening, generateContinuation } from '../engine/api'
 import { fetchAudio } from '../engine/elevenlabs'
 import { playAudio, stopAudio, clearAudio, isPaused } from '../engine/audioManager'
@@ -9,6 +10,13 @@ import BootSequence from '../components/BootSequence'
 import GlitchText from '../components/GlitchText'
 
 export default function GameScreen({ config, story, setStory, inventory, setInventory, setMovieCard, navigate }) {
+  const navigate     = useStore(s => s.navigate)
+  const config       = useStore(s => s.config)
+  const story        = useStore(s => s.story)
+  const setStory     = useStore(s => s.setStory)
+  const inventory    = useStore(s => s.inventory)
+  const setInventory = useStore(s => s.setInventory)
+  const setMovieCard = useStore(s => s.setMovieCard)
   const [currentBeat, setCurrentBeat] = useState(null)
   const [choices, setChoices]         = useState([])
   const [loading, setLoading]         = useState(false)

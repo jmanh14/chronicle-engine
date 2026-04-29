@@ -1,9 +1,16 @@
 import { useState, useEffect } from 'react'
+import { useStore } from '../store'
 import { generateMovieCard } from '../engine/api'
 import { saveStory } from '../storage/shelf'
 import MovieCard from '../components/MovieCard'
 
 export default function EndingScreen({ config, story, movieCard, setMovieCard, navigate }) {
+  const navigate = useStore(s => s.navigate)
+  const config = useStore(s => s.config)
+  const story = useStore(s => s.story)
+  const resetGame = useStore(s => s.resetGame)
+  const movieCard = useStore(s => s.movieCard)
+  const setMovieCard = useStore(s => s.setMovieCard)
   const [loading, setLoading]   = useState(true)
   const [saved, setSaved]       = useState(false)
   const [error, setError]       = useState(null)
@@ -119,7 +126,10 @@ export default function EndingScreen({ config, story, movieCard, setMovieCard, n
             </ActionButton>
 
             <ActionButton
-              onClick={() => navigate('setup')}
+              onClick={() => {
+                resetGame()
+                navigate('setup')
+              }}
               color="var(--amber)"
               borderColor="var(--amber)"
             >

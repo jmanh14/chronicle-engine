@@ -1,10 +1,13 @@
 import { useState } from 'react'
+import { useStore } from '../store'
 import { unlockAudio } from '../engine/audioManager'
 
 const GENRES = ['Fantasy', 'Horror', 'Sci-Fi', 'Western', 'Noir', 'Post-Apocalyptic', 'Isekai', 'Pirate', 'Alien Invasion', 'Lovecraftian', 'Dreams']
 const TONES  = ['Grim', 'Heroic', 'Comedic', 'Mysterious', 'Tense', 'Melancholic']
 
 export default function SetupScreen({ navigate, setConfig }) {
+  const navigate = useStore(s => s.navigate)
+  const setConfig = useStore(s => s.setConfig)
   const [genre, setGenre]         = useState(null)
   const [tone, setTone]           = useState(null)
   const [protagonist, setProtagonist] = useState('')

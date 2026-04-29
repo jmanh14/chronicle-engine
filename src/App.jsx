@@ -1,5 +1,6 @@
-import { useState, useEffect } from 'react'
+import { useEffect } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
+import { useStore } from './store'
 import { unlockAudio } from './engine/audioManager'
 
 import LandingScreen  from './screens/LandingScreen'
@@ -10,18 +11,14 @@ import ShelfScreen    from './screens/ShelfScreen'
 import RotatePrompt   from './components/RotatePrompt'
 
 const fadeSlide = {
-  initial:  { opacity: 0, y: 10 },
-  animate:  { opacity: 1, y: 0 },
-  exit:     { opacity: 0, y: -10 },
+  initial:    { opacity: 0, y: 10 },
+  animate:    { opacity: 1, y: 0 },
+  exit:       { opacity: 0, y: -10 },
   transition: { duration: 0.3, ease: 'easeInOut' }
 }
 
 export default function App() {
-  const [screen, setScreen]       = useState('landing')
-  const [config, setConfig]       = useState(null)
-  const [story, setStory]         = useState([])
-  const [inventory, setInventory] = useState({ items: [], allies: [], enemies: [], status: [] })
-  const [movieCard, setMovieCard] = useState(null)
+  const screen = useStore(s => s.screen)
 
   useEffect(() => {
     const unlock = () => {
@@ -37,16 +34,6 @@ export default function App() {
     }
   }, [])
 
-  const navigate = (to) => setScreen(to)
-
-  const screenProps = {
-    navigate,
-    config,  setConfig,
-    story,   setStory,
-    inventory, setInventory,
-    movieCard, setMovieCard,
-  }
-
   return (
     <div style={{ minHeight: '100vh' }}>
       <RotatePrompt />
@@ -56,11 +43,11 @@ export default function App() {
           {...fadeSlide}
           style={{ minHeight: '100vh' }}
         >
-          {screen === 'landing'  && <LandingScreen  {...screenProps} />}
-          {screen === 'setup'    && <SetupScreen    {...screenProps} />}
-          {screen === 'game'     && <GameScreen     {...screenProps} />}
-          {screen === 'ending'   && <EndingScreen   {...screenProps} />}
-          {screen === 'shelf'    && <ShelfScreen    {...screenProps} />}
+          {screen === 'landing'  && <LandingScreen  />}
+          {screen === 'setup'    && <SetupScreen    />}
+          {screen === 'game'     && <GameScreen     />}
+          {screen === 'ending'   && <EndingScreen   />}
+          {screen === 'shelf'    && <ShelfScreen    />}
         </motion.div>
       </AnimatePresence>
     </div>

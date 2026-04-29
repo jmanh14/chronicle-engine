@@ -1,9 +1,12 @@
 import { useState, useRef } from 'react'
 import { unlockAudio } from '../engine/audioManager'
+import { useStore } from '../store'
 
 export default function LandingScreen({ navigate }) {
+  const navigate = useStore(s => s.navigate)
   const [showHelp, setShowHelp] = useState(false)
   const helpAudioRef = useRef(null)
+  const resetGame = useStore(s => s.resetGame)
 
   function handleHelpOpen() {
     unlockAudio()
@@ -91,6 +94,7 @@ export default function LandingScreen({ navigate }) {
           <button
             onClick={() => {
               unlockAudio()
+              resetGame()
               navigate('setup')
             }}
             style={{
