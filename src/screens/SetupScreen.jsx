@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { unlockAudio } from '../engine/audioManager'
 
-const GENRES = ['Fantasy', 'Horror', 'Sci-Fi', 'Western', 'Noir', 'Post-Apocalyptic', 'Isekai']
+const GENRES = ['Fantasy', 'Horror', 'Sci-Fi', 'Western', 'Noir', 'Post-Apocalyptic', 'Isekai', 'Pirate', 'Alien Invasion', 'Lovecraftian', 'Dreams']
 const TONES  = ['Grim', 'Heroic', 'Comedic', 'Mysterious', 'Tense', 'Melancholic']
 
 export default function SetupScreen({ navigate, setConfig }) {
