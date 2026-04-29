@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef, memo } from 'react'
 
 const CHARS = 'A8#$%X@!?01&*ZK9>|/\\[]{}~'
 
@@ -14,7 +14,7 @@ function scramble(target, progress) {
     .join('')
 }
 
-export default function GlitchText({ text, sentenceTimes, currentTime }) {
+const GlitchText = memo(function GlitchText({ text, sentenceTimes, currentTime }) {
   const [displayed, setDisplayed] = useState('')
   const progressRef = useRef(0)
   const frameRef    = useRef(null)
@@ -43,12 +43,10 @@ export default function GlitchText({ text, sentenceTimes, currentTime }) {
     return () => cancelAnimationFrame(frameRef.current)
   }, [text])
 
-  // find current sentence based on audio time
   const currentSentenceIndex = sentenceTimes
     ? sentenceTimes.findIndex(s => currentTime >= s.startTime && currentTime < s.endTime)
     : -1
 
-  // if glitch is still running just show plain text
   if (displayed !== text) {
     return (
       <div style={{
@@ -63,7 +61,6 @@ export default function GlitchText({ text, sentenceTimes, currentTime }) {
     )
   }
 
-  // split into sentences and highlight current one
   if (sentenceTimes && sentenceTimes.length > 0) {
     return (
       <div style={{
@@ -100,4 +97,14 @@ export default function GlitchText({ text, sentenceTimes, currentTime }) {
       {displayed}
     </div>
   )
-}
+}, (prev, next) => {
+  const prevIndex = prev.sentenceTimes?.findIndex(
+    s => prev.currentTime >= s.startTime && prev.currentTime < s.endTime
+  ) ?? -1
+  const nextIndex = next.sentenceTimes?.findIndex(
+    s => next.currentTime >= s.startTime && next.currentTime < s.endTime
+  ) ?? -1
+  return prev.text === next.text && prevIndex === nextIndex
+})
+
+export default GlitchText

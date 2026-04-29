@@ -33,12 +33,14 @@ export default function GameScreen() {
   const [audioTime, setAudioTime]         = useState(0)
   const [dossierOpen, setDossierOpen] = useState(true)
   const [isEnding, setIsEnding]       = useState(false)
-  const hasStarted                    = useRef(false)
-  const bottomRef                     = useRef(null)
   const [consequences, setConsequences] = useState([])
-  const [location, setLocation]     = useState(null)
-  const [timeOfDay, setTimeOfDay]   = useState(null)
-  const [tension, setTension]       = useState(1)
+  const [location, setLocation]       = useState(null)
+  const [timeOfDay, setTimeOfDay]     = useState(null)
+  const [tension, setTension]         = useState(1)
+  const hasStarted                    = useRef(false)
+  const hasRevealed                   = useRef(false)
+  const bottomRef                     = useRef(null)
+  const beatKeyRef                    = useRef(0)
 
   useEffect(() => {
     if (hasStarted.current) return
@@ -55,6 +57,8 @@ export default function GameScreen() {
 
   useEffect(() => {
     if (!booting && beatReady && pendingBeat && pendingUrl) {
+      if (hasRevealed.current) return
+      hasRevealed.current = true
       revealBeat(pendingBeat, pendingUrl)
     }
   }, [booting, beatReady])
@@ -80,6 +84,7 @@ export default function GameScreen() {
   }
 
   async function revealBeat(beat, audioData) {
+    beatKeyRef.current += 1
     setCurrentBeat(beat)
     setChoices(beat.choices)
     setInventory(beat.inventory)
@@ -150,7 +155,6 @@ export default function GameScreen() {
       setLocation(beat.location ?? location)
       setTimeOfDay(beat.timeOfDay ?? timeOfDay)
       setTension(beat.tension ?? tension)
-      setTurn(t => t + 1)
 
       if (beat.isEnding) {
         const finalHistory = [
@@ -159,9 +163,11 @@ export default function GameScreen() {
         ]
         setStory(finalHistory)
         setMovieCard({ title: beat.title, genre: config.genre, tone: config.tone })
+        beatKeyRef.current += 1
         setCurrentBeat(beat)
         setChoices([])
         setLoading(false)
+        setTimeout(() => setTurn(t => t + 1), 50)
 
         if (narrateOn) {
           let audioData = null
@@ -190,9 +196,12 @@ export default function GameScreen() {
         setIsEnding(true)
 
       } else {
+        beatKeyRef.current += 1
         setCurrentBeat(beat)
         setChoices(beat.choices)
         setLoading(false)
+        setTimeout(() => setTurn(t => t + 1), 50)
+
         if (narrateOn) {
           let audioData = null
           try {
@@ -320,7 +329,6 @@ export default function GameScreen() {
                   <span style={{ color: 'var(--green)' }}>&gt;</span> {config.protagonist}
                 </div>
                 <div style={{ display: 'flex', gap: 6 }}>
-                  {/* Narrate button */}
                   <button
                     onClick={handleManualNarrate}
                     style={{
@@ -346,7 +354,6 @@ export default function GameScreen() {
                       : '▶ NARRATE OFF'}
                   </button>
 
-                  {/* Dossier toggle button */}
                   <button
                     onClick={() => setDossierOpen(prev => !prev)}
                     title={dossierOpen ? 'Hide Dossier' : 'Show Dossier'}
@@ -400,7 +407,7 @@ export default function GameScreen() {
 
             {/* Current beat with glitch effect */}
             {currentBeat && !loading && (
-              <div className="scanin">
+              <div className="scanin" key={beatKeyRef.current}>
                 <GlitchText
                   text={currentBeat.story}
                   sentenceTimes={sentenceTimes}
