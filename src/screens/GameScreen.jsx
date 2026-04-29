@@ -29,11 +29,12 @@ export default function GameScreen() {
   const [beatReady, setBeatReady]     = useState(false)
   const [pendingBeat, setPendingBeat] = useState(null)
   const [pendingUrl, setPendingUrl]   = useState(null)
-  const hasStarted                    = useRef(false)
-  const bottomRef                     = useRef(null)
   const [sentenceTimes, setSentenceTimes] = useState([])
   const [audioTime, setAudioTime]         = useState(0)
   const [dossierOpen, setDossierOpen] = useState(true)
+  const [isEnding, setIsEnding]       = useState(false)
+  const hasStarted                    = useRef(false)
+  const bottomRef                     = useRef(null)
 
   useEffect(() => {
     if (hasStarted.current) return
@@ -142,7 +143,35 @@ export default function GameScreen() {
         ]
         setStory(finalHistory)
         setMovieCard({ title: beat.title, genre: config.genre, tone: config.tone })
-        navigate('ending')
+        setCurrentBeat(beat)
+        setChoices([])
+        setLoading(false)
+
+        let audioData = null
+        try {
+          audioData = await fetchAudio(beat.story, config.tone)
+        } catch (audioErr) {
+          console.error('Audio fetch failed:', audioErr)
+        }
+
+        if (narrateOn && audioData) {
+          setSentenceTimes(audioData.sentenceTimes ?? [])
+          setAudioTime(0)
+          await new Promise(resolve => {
+            playAudio(
+              audioData.audioSrc,
+              () => {
+                setAudioState('idle')
+                resolve()
+              },
+              (t) => setAudioTime(t)
+            )
+            setAudioState('playing')
+          })
+        }
+
+        setIsEnding(true)
+
       } else {
         let audioData = null
         try {
@@ -263,56 +292,59 @@ export default function GameScreen() {
                 </div>
               </div>
 
-              {/* Right side — protagonist + narrate button */}
+              {/* Right side — protagonist + buttons */}
               <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 6, marginLeft: 12 }}>
                 <div style={{ fontSize: 'clamp(9px, 1.2vw, 11px)', color: 'var(--text-dim)', letterSpacing: 1 }}>
                   <span style={{ color: 'var(--green)' }}>&gt;</span> {config.protagonist}
                 </div>
-                <button
-                  onClick={handleManualNarrate}
-                  style={{
-                    background: narrateOn ? 'var(--green-dark)' : 'transparent',
-                    border: `1px solid ${narrateOn ? 'var(--green)' : 'var(--border)'}`,
-                    color: narrateOn
-                      ? audioState === 'loading' ? 'var(--amber)' : 'var(--green)'
-                      : 'var(--text-dim)',
-                    fontFamily: 'var(--font-mono)',
-                    fontSize: 'clamp(9px, 1.2vw, 11px)',
-                    padding: '3px 8px',
-                    cursor: 'pointer',
-                    letterSpacing: 1,
-                    borderRadius: 2,
-                    transition: 'all 0.15s',
-                    whiteSpace: 'nowrap',
-                  }}
-                >
-                  {narrateOn
-                    ? audioState === 'loading' ? '… LOADING'
-                    : audioState === 'playing' ? '■ NARRATE ON'
-                    : '▶ NARRATE ON'
-                    : '▶ NARRATE OFF'}
-                </button>
+                <div style={{ display: 'flex', gap: 6 }}>
+                  {/* Narrate button */}
+                  <button
+                    onClick={handleManualNarrate}
+                    style={{
+                      background: narrateOn ? 'var(--green-dark)' : 'transparent',
+                      border: `1px solid ${narrateOn ? 'var(--green)' : 'var(--border)'}`,
+                      color: narrateOn
+                        ? audioState === 'loading' ? 'var(--amber)' : 'var(--green)'
+                        : 'var(--text-dim)',
+                      fontFamily: 'var(--font-mono)',
+                      fontSize: 'clamp(9px, 1.2vw, 11px)',
+                      padding: '3px 8px',
+                      cursor: 'pointer',
+                      letterSpacing: 1,
+                      borderRadius: 2,
+                      transition: 'all 0.15s',
+                      whiteSpace: 'nowrap',
+                    }}
+                  >
+                    {narrateOn
+                      ? audioState === 'loading' ? '… LOADING'
+                      : audioState === 'playing' ? '■ NARRATE ON'
+                      : '▶ NARRATE ON'
+                      : '▶ NARRATE OFF'}
+                  </button>
 
-                {/* Dossier toggle button */}
-                <button
-                  onClick={() => setDossierOpen(prev => !prev)}
-                  title={dossierOpen ? 'Hide Dossier' : 'Show Dossier'}
-                  style={{
-                    background: dossierOpen ? 'var(--green-dark)' : 'transparent',
-                    border: `1px solid ${dossierOpen ? 'var(--green)' : 'var(--border)'}`,
-                    color: dossierOpen ? 'var(--green)' : 'var(--text-dim)',
-                    fontFamily: 'var(--font-mono)',
-                    fontSize: 'clamp(9px, 1.2vw, 11px)',
-                    padding: '3px 8px',
-                    cursor: 'pointer',
-                    letterSpacing: 1,
-                    borderRadius: 2,
-                    transition: 'all 0.15s',
-                    whiteSpace: 'nowrap',
-                  }}
-                >
-                  {dossierOpen ? '▶▶ DOSSIER' : '◀◀ DOSSIER'}
-                </button>
+                  {/* Dossier toggle button */}
+                  <button
+                    onClick={() => setDossierOpen(prev => !prev)}
+                    title={dossierOpen ? 'Hide Dossier' : 'Show Dossier'}
+                    style={{
+                      background: dossierOpen ? 'var(--green-dark)' : 'transparent',
+                      border: `1px solid ${dossierOpen ? 'var(--green)' : 'var(--border)'}`,
+                      color: dossierOpen ? 'var(--green)' : 'var(--text-dim)',
+                      fontFamily: 'var(--font-mono)',
+                      fontSize: 'clamp(9px, 1.2vw, 11px)',
+                      padding: '3px 8px',
+                      cursor: 'pointer',
+                      letterSpacing: 1,
+                      borderRadius: 2,
+                      transition: 'all 0.15s',
+                      whiteSpace: 'nowrap',
+                    }}
+                  >
+                    {dossierOpen ? '▶▶ DOSSIER' : '◀◀ DOSSIER'}
+                  </button>
+                </div>
               </div>
             </div>
           </div>
@@ -347,11 +379,11 @@ export default function GameScreen() {
             {/* Current beat with glitch effect */}
             {currentBeat && !loading && (
               <div className="scanin">
-                <GlitchText 
+                <GlitchText
                   text={currentBeat.story}
                   sentenceTimes={sentenceTimes}
                   currentTime={audioTime}
-                 />
+                />
               </div>
             )}
 
@@ -429,6 +461,45 @@ export default function GameScreen() {
                   />
                 ))}
               </div>
+            </div>
+          )}
+
+          {/* Ending continue button */}
+          {isEnding && !loading && (
+            <div style={{
+              padding: 'clamp(10px, 2vw, 16px) clamp(12px, 2vw, 28px)',
+              borderTop: '1px solid var(--border)',
+              flexShrink: 0,
+              background: 'var(--bg)',
+            }}>
+              <div style={{
+                fontSize: 11,
+                color: 'var(--text-dim)',
+                letterSpacing: 3,
+                marginBottom: 12,
+                textTransform: 'uppercase',
+              }}>
+                // Your story has ended
+              </div>
+              <button
+                onClick={() => navigate('ending')}
+                style={{
+                  width: '100%',
+                  padding: '14px',
+                  background: 'var(--green-dark)',
+                  border: '1px solid var(--green)',
+                  color: 'var(--green)',
+                  fontFamily: 'var(--font-display)',
+                  fontSize: 24,
+                  letterSpacing: 4,
+                  cursor: 'pointer',
+                  transition: 'all 0.2s',
+                }}
+                onMouseEnter={e => e.target.style.background = '#005c1a'}
+                onMouseLeave={e => e.target.style.background = 'var(--green-dark)'}
+              >
+                VIEW STORY RECORD →
+              </button>
             </div>
           )}
 
