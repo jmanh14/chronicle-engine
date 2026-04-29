@@ -9,20 +9,20 @@ import BootSequence from '../components/BootSequence'
 import GlitchText from '../components/GlitchText'
 
 export default function GameScreen({ config, story, setStory, inventory, setInventory, setMovieCard, navigate }) {
-  const [currentBeat, setCurrentBeat]   = useState(null)
-  const [choices, setChoices]           = useState([])
-  const [loading, setLoading]           = useState(false)
-  const [error, setError]               = useState(null)
-  const [turn, setTurn]                 = useState(0)
-  const [storyTitle, setStoryTitle]     = useState('UNTITLED')
-  const [booting, setBooting]           = useState(true)
-  const [audioState, setAudioState]     = useState('idle')
-  const [narrateOn, setNarrateOn]       = useState(false)
-  const [beatReady, setBeatReady]       = useState(false)
-  const [pendingBeat, setPendingBeat]   = useState(null)
-  const [pendingUrl, setPendingUrl]     = useState(null)
-  const hasStarted                      = useRef(false)
-  const bottomRef                       = useRef(null)
+  const [currentBeat, setCurrentBeat] = useState(null)
+  const [choices, setChoices]         = useState([])
+  const [loading, setLoading]         = useState(false)
+  const [error, setError]             = useState(null)
+  const [turn, setTurn]               = useState(0)
+  const [storyTitle, setStoryTitle]   = useState('UNTITLED')
+  const [booting, setBooting]         = useState(true)
+  const [audioState, setAudioState]   = useState('idle')
+  const [narrateOn, setNarrateOn]     = useState(false)
+  const [beatReady, setBeatReady]     = useState(false)
+  const [pendingBeat, setPendingBeat] = useState(null)
+  const [pendingUrl, setPendingUrl]   = useState(null)
+  const hasStarted                    = useRef(false)
+  const bottomRef                     = useRef(null)
 
   useEffect(() => {
     if (hasStarted.current) return
@@ -38,33 +38,28 @@ export default function GameScreen({ config, story, setStory, inventory, setInve
   }, [currentBeat, loading, story])
 
   useEffect(() => {
-  if (!booting && beatReady && pendingBeat && pendingUrl) {
-    revealBeat(pendingBeat, pendingUrl)
-  }
-}, [booting, beatReady])
+    if (!booting && beatReady && pendingBeat && pendingUrl) {
+      revealBeat(pendingBeat, pendingUrl)
+    }
+  }, [booting, beatReady])
 
   async function startStory() {
     setError(null)
     try {
       const beat = await generateOpening(config)
-      console.log('beat generated', beat)
-      
       let url = null
       try {
         url = await fetchAudio(beat.story, config.tone)
-        console.log('audio fetched')
       } catch (audioErr) {
         console.error('Audio fetch failed:', audioErr)
-        // continue without audio rather than blocking the whole screen
       }
-
       setPendingBeat(beat)
       setPendingUrl(url)
       setBeatReady(true)
     } catch (err) {
       console.error('Story generation failed:', err)
       setError('SIGNAL LOST. Failed to initialize narrative.')
-      setBeatReady(true) // unblock boot sequence even on error
+      setBeatReady(true)
     }
   }
 
@@ -82,15 +77,16 @@ export default function GameScreen({ config, story, setStory, inventory, setInve
     }
   }
 
-  async function handleBootComplete() {
+  function handleBootComplete() {
     setBooting(false)
   }
 
-  async function handleRetry() {
+  function handleRetry() {
     setError(null)
     setLoading(false)
     setChoices(currentBeat ? currentBeat.choices : [])
   }
+
   async function handleChoice(choice) {
     if (loading) return
 
@@ -131,11 +127,16 @@ export default function GameScreen({ config, story, setStory, inventory, setInve
         setMovieCard({ title: beat.title, genre: config.genre, tone: config.tone })
         navigate('ending')
       } else {
-        const url = await fetchAudio(beat.story, config.tone)
+        let url = null
+        try {
+          url = await fetchAudio(beat.story, config.tone)
+        } catch (audioErr) {
+          console.error('Audio fetch failed:', audioErr)
+        }
         setCurrentBeat(beat)
         setChoices(beat.choices)
         setLoading(false)
-        if (narrateOn){
+        if (narrateOn && url) {
           await playAudio(url, () => setAudioState('idle'))
           setAudioState('playing')
         }
@@ -143,18 +144,14 @@ export default function GameScreen({ config, story, setStory, inventory, setInve
     } catch (err) {
       setError('SIGNAL LOST. Transmission interrupted.')
       setLoading(false)
-      // restore choices
       if (currentBeat?.choices) {
         setChoices(currentBeat.choices)
       }
-    } finally {
-      setLoading(false)
     }
   }
 
-    async function handleManualNarrate() {
+  async function handleManualNarrate() {
     if (narrateOn) {
-      // pause — keep position
       stopAudio()
       setAudioState('idle')
       setNarrateOn(false)
@@ -162,11 +159,9 @@ export default function GameScreen({ config, story, setStory, inventory, setInve
       setNarrateOn(true)
       if (currentBeat) {
         if (isPaused()) {
-          // resume from where we left off — no new fetch needed
           setAudioState('playing')
           await playAudio(null, () => setAudioState('idle'), true)
         } else {
-          // fresh fetch for new audio
           setAudioState('loading')
           try {
             const url = await fetchAudio(currentBeat.story, config.tone)
@@ -179,8 +174,9 @@ export default function GameScreen({ config, story, setStory, inventory, setInve
       }
     }
   }
+
   return (
-    <div style={{ minHeight: '100vh' }}>
+    <div style={{ height: '100vh', overflow: 'hidden' }}>
 
       {/* Boot sequence overlay */}
       {booting && (
@@ -194,8 +190,9 @@ export default function GameScreen({ config, story, setStory, inventory, setInve
       {/* Main layout */}
       <div style={{
         display: booting ? 'none' : 'grid',
-        gridTemplateColumns: '1fr clamp(160px, 20vw, 260px',
-        minHeight: '100vh',
+        gridTemplateColumns: '1fr clamp(140px, 20vw, 260px)',
+        height: '100vh',
+        overflow: 'hidden',
       }}>
 
         {/* ── LEFT: main story column ── */}
@@ -204,75 +201,77 @@ export default function GameScreen({ config, story, setStory, inventory, setInve
           flexDirection: 'column',
           borderRight: '1px solid var(--border)',
           height: '100vh',
+          overflow: 'hidden',
         }}>
 
-        {/* Fixed header */}
-        <div style={{
-          padding: '12px 16px 10px',
-          borderBottom: '1px solid var(--border)',
-          flexShrink: 0,
-        }}>
+          {/* Fixed header */}
           <div style={{
-            display: 'flex',
-            justifyContent: 'space-between',
-            alignItems: 'center',
+            padding: '12px 16px 10px',
+            borderBottom: '1px solid var(--border)',
+            flexShrink: 0,
           }}>
-            <div style={{ flex: 1, minWidth: 0 }}>
-              <div style={{
-                fontFamily: 'var(--font-display)',
-                fontSize: 'clamp(16px, 3vw, 28px)',
-                color: 'var(--green)',
-                letterSpacing: 2,
-                textShadow: '0 0 10px var(--green)',
-                whiteSpace: 'nowrap',
-                overflow: 'hidden',
-                textOverflow: 'ellipsis',
-              }}>
-                {storyTitle.toUpperCase()}
-              </div>
-              <div style={{ fontSize: 'clamp(9px, 1.2vw, 11px)', color: 'var(--text-dim)', letterSpacing: 2, marginTop: 2 }}>
-                {config.genre.toUpperCase()} // {config.tone.toUpperCase()} // TURN {turn}
-              </div>
-            </div>
-
-            {/* Right side — protagonist + narrate button */}
-            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 6, marginLeft: 12 }}>
-              <div style={{ fontSize: 'clamp(9px, 1.2vw, 11px)', color: 'var(--text-dim)', letterSpacing: 1 }}>
-                <span style={{ color: 'var(--green)' }}>&gt;</span> {config.protagonist}
-              </div>
-              <button
-                onClick={handleManualNarrate}
-                style={{
-                  background: narrateOn ? 'var(--green-dark)' : 'transparent',
-                  border: `1px solid ${narrateOn ? 'var(--green)' : 'var(--border)'}`,
-                  color: narrateOn
-                    ? audioState === 'loading' ? 'var(--amber)' : 'var(--green)'
-                    : 'var(--text-dim)',
-                  fontFamily: 'var(--font-mono)',
-                  fontSize: 'clamp(9px, 1.2vw, 11px)',
-                  padding: '3px 8px',
-                  cursor: 'pointer',
-                  letterSpacing: 1,
-                  borderRadius: 2,
-                  transition: 'all 0.15s',
+            <div style={{
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+            }}>
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <div style={{
+                  fontFamily: 'var(--font-display)',
+                  fontSize: 'clamp(16px, 3vw, 28px)',
+                  color: 'var(--green)',
+                  letterSpacing: 2,
+                  textShadow: '0 0 10px var(--green)',
                   whiteSpace: 'nowrap',
-                }}
-              >
-                {narrateOn
-                  ? audioState === 'loading' ? '… LOADING'
-                  : audioState === 'playing' ? '■ NARRATE ON'
-                  : '▶ NARRATE ON'
-                  : '▶ NARRATE OFF'}
-              </button>
+                  overflow: 'hidden',
+                  textOverflow: 'ellipsis',
+                }}>
+                  {storyTitle.toUpperCase()}
+                </div>
+                <div style={{ fontSize: 'clamp(9px, 1.2vw, 11px)', color: 'var(--text-dim)', letterSpacing: 2, marginTop: 2 }}>
+                  {config.genre.toUpperCase()} // {config.tone.toUpperCase()} // TURN {turn}
+                </div>
+              </div>
+
+              {/* Right side — protagonist + narrate button */}
+              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 6, marginLeft: 12 }}>
+                <div style={{ fontSize: 'clamp(9px, 1.2vw, 11px)', color: 'var(--text-dim)', letterSpacing: 1 }}>
+                  <span style={{ color: 'var(--green)' }}>&gt;</span> {config.protagonist}
+                </div>
+                <button
+                  onClick={handleManualNarrate}
+                  style={{
+                    background: narrateOn ? 'var(--green-dark)' : 'transparent',
+                    border: `1px solid ${narrateOn ? 'var(--green)' : 'var(--border)'}`,
+                    color: narrateOn
+                      ? audioState === 'loading' ? 'var(--amber)' : 'var(--green)'
+                      : 'var(--text-dim)',
+                    fontFamily: 'var(--font-mono)',
+                    fontSize: 'clamp(9px, 1.2vw, 11px)',
+                    padding: '3px 8px',
+                    cursor: 'pointer',
+                    letterSpacing: 1,
+                    borderRadius: 2,
+                    transition: 'all 0.15s',
+                    whiteSpace: 'nowrap',
+                  }}
+                >
+                  {narrateOn
+                    ? audioState === 'loading' ? '… LOADING'
+                    : audioState === 'playing' ? '■ NARRATE ON'
+                    : '▶ NARRATE ON'
+                    : '▶ NARRATE OFF'}
+                </button>
+              </div>
             </div>
           </div>
-        </div>
 
           {/* Scrollable story area */}
           <div style={{
             flex: 1,
             overflowY: 'auto',
-            padding: '24px 28px',
+            padding: '16px',
+            WebkitOverflowScrolling: 'touch',
           }}>
 
             {/* History beats */}
@@ -348,10 +347,12 @@ export default function GameScreen({ config, story, setStory, inventory, setInve
           {/* Fixed choices footer */}
           {!loading && choices.length > 0 && (
             <div style={{
-              padding: 'clamp(10px, 2vw, 16px) clamp(12px, 2vw, 28px) clamp(12px, 2vw, 24px)',
+              padding: 'clamp(10px, 2vw, 16px) clamp(12px, 2vw, 28px)',
               borderTop: '1px solid var(--border)',
               flexShrink: 0,
               background: 'var(--bg)',
+              overflowY: 'auto',
+              maxHeight: '35vh',
             }}>
               <div style={{
                 fontSize: 11,

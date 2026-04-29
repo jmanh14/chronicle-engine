@@ -8,7 +8,7 @@ const SECTIONS = [
 ]
 
 export default function InventoryPanel({ inventory, turn, protagonist }) {
-  const prevRef = useRef({})
+  const prevRef    = useRef({})
   const newEntries = useRef(new Set())
 
   useEffect(() => {
@@ -17,7 +17,7 @@ export default function InventoryPanel({ inventory, turn, protagonist }) {
 
     const isFirstLoad = Object.values(prev).every(arr => arr.length === 0)
 
-    if (!isFirstLoad){
+    if (!isFirstLoad) {
       SECTIONS.forEach(({ key }) => {
         const prevList = prev[key] ?? []
         const currList = inventory?.[key] ?? []
@@ -37,23 +37,24 @@ export default function InventoryPanel({ inventory, turn, protagonist }) {
       display: 'flex',
       flexDirection: 'column',
       height: '100vh',
+      overflow: 'hidden',
     }}>
 
       {/* Fixed panel header */}
       <div style={{
-        padding: '24px 16px 16px',
+        padding: '12px 10px 10px',
         borderBottom: '1px solid var(--border)',
         flexShrink: 0,
       }}>
         <div style={{
           fontFamily: 'var(--font-display)',
-          fontSize: 20,
+          fontSize: 'clamp(14px, 2vw, 20px)',
           color: 'var(--green)',
           letterSpacing: 3,
         }}>
           DOSSIER
         </div>
-        <div style={{ fontSize: 11, color: 'var(--text-dim)', letterSpacing: 2, marginTop: 4 }}>
+        <div style={{ fontSize: 'clamp(9px, 1.2vw, 11px)', color: 'var(--text-dim)', letterSpacing: 2, marginTop: 4 }}>
           {protagonist} // T-{String(turn).padStart(2, '0')}
         </div>
       </div>
@@ -62,26 +63,27 @@ export default function InventoryPanel({ inventory, turn, protagonist }) {
       <div style={{
         flex: 1,
         overflowY: 'auto',
-        padding: '20px 16px',
+        padding: '12px 10px',
         display: 'flex',
         flexDirection: 'column',
-        gap: 24,
+        gap: 16,
+        WebkitOverflowScrolling: 'touch',
       }}>
         {SECTIONS.map(({ key, label, icon }) => {
           const entries = inventory?.[key] ?? []
           return (
             <div key={key}>
               <div style={{
-                fontSize: 10,
+                fontSize: 'clamp(9px, 1.2vw, 10px)',
                 letterSpacing: 3,
                 color: 'var(--text-dim)',
-                marginBottom: 8,
+                marginBottom: 6,
                 textTransform: 'uppercase',
               }}>
                 {icon} {label}
               </div>
               {entries.length === 0 ? (
-                <div style={{ fontSize: 12, color: 'var(--border-bright)', opacity: 0.3, paddingLeft: 4 }}>
+                <div style={{ fontSize: 'clamp(10px, 1.5vw, 12px)', color: 'var(--border-bright)', opacity: 0.3, paddingLeft: 4 }}>
                   — NONE —
                 </div>
               ) : (
@@ -90,7 +92,7 @@ export default function InventoryPanel({ inventory, turn, protagonist }) {
                     const isNew = newEntries.current.has(entry)
                     return (
                       <div key={i} style={{
-                        fontSize: 12,
+                        fontSize: 'clamp(10px, 1.5vw, 12px)',
                         color: key === 'enemies' ? 'var(--red)' : key === 'allies' ? 'var(--amber)' : 'var(--text)',
                         paddingLeft: 4,
                         borderLeft: `2px solid ${
