@@ -33,6 +33,7 @@ export default function GameScreen() {
   const bottomRef                     = useRef(null)
   const [sentenceTimes, setSentenceTimes] = useState([])
   const [audioTime, setAudioTime]         = useState(0)
+  const [dossierOpen, setDossierOpen] = useState(true)
 
   useEffect(() => {
     if (hasStarted.current) return
@@ -218,9 +219,10 @@ export default function GameScreen() {
       {/* Main layout */}
       <div style={{
         display: booting ? 'none' : 'grid',
-        gridTemplateColumns: '1fr clamp(140px, 20vw, 260px)',
+        gridTemplateColumns: dossierOpen ? '1fr clamp(140px, 20vw, 260px)' : '1fr',
         height: '100vh',
         overflow: 'hidden',
+        transition: 'grid-template-columns 0.3s ease',
       }}>
 
         {/* ── LEFT: main story column ── */}
@@ -289,6 +291,27 @@ export default function GameScreen() {
                     : audioState === 'playing' ? '■ NARRATE ON'
                     : '▶ NARRATE ON'
                     : '▶ NARRATE OFF'}
+                </button>
+
+                {/* Dossier toggle button */}
+                <button
+                  onClick={() => setDossierOpen(prev => !prev)}
+                  title={dossierOpen ? 'Hide Dossier' : 'Show Dossier'}
+                  style={{
+                    background: dossierOpen ? 'var(--green-dark)' : 'transparent',
+                    border: `1px solid ${dossierOpen ? 'var(--green)' : 'var(--border)'}`,
+                    color: dossierOpen ? 'var(--green)' : 'var(--text-dim)',
+                    fontFamily: 'var(--font-mono)',
+                    fontSize: 'clamp(9px, 1.2vw, 11px)',
+                    padding: '3px 8px',
+                    cursor: 'pointer',
+                    letterSpacing: 1,
+                    borderRadius: 2,
+                    transition: 'all 0.15s',
+                    whiteSpace: 'nowrap',
+                  }}
+                >
+                  {dossierOpen ? '▶▶ DOSSIER' : '◀◀ DOSSIER'}
                 </button>
               </div>
             </div>
@@ -412,12 +435,13 @@ export default function GameScreen() {
         </div>
 
         {/* ── RIGHT: inventory panel ── */}
-        <InventoryPanel
-          inventory={inventory}
-          turn={turn}
-          protagonist={config.protagonist}
-        />
-
+        {dossierOpen && (
+          <InventoryPanel
+            inventory={inventory}
+            turn={turn}
+            protagonist={config.protagonist}
+          />
+        )}
       </div>
     </div>
   )
