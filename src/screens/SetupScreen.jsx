@@ -8,12 +8,16 @@ export default function SetupScreen({ navigate, setConfig }) {
   const [genre, setGenre]         = useState(null)
   const [tone, setTone]           = useState(null)
   const [protagonist, setProtagonist] = useState('')
+  const [useScenario, setUseScenario] = useState(false)
+  const [scenario, setScenario] = useState('')
+
+  const SCENARIO_LIMIT = 150
 
   const ready = genre && tone && protagonist.trim().length > 0
 
   const handleBegin = () => {
     unlockAudio()
-    setConfig({ genre, tone, protagonist: protagonist.trim() })
+    setConfig({ genre, tone, protagonist: protagonist.trim(), scenario: useScenario && scenario.trim().length > 0 ? scenario.trim() : null })
     navigate('game')
   }
 
@@ -79,7 +83,7 @@ export default function SetupScreen({ navigate, setConfig }) {
         </Section>
 
         {/* Protagonist */}
-        <Section label="03 // PROTAGONIST NAME" last>
+        <Section label="03 // PROTAGONIST NAME">
           <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
             <span style={{ color: 'var(--green-dim)' }}>&gt;</span>
             <input
@@ -104,6 +108,95 @@ export default function SetupScreen({ navigate, setConfig }) {
             />
             <span className="blink" style={{ color: 'var(--green)' }}>█</span>
           </div>
+        </Section>
+
+        <Section label="04 // CUSTOM SCENARIO" last>
+          {/* Checkbox toggle */}
+          <div
+            onClick={() => {
+              setUseScenario(prev => !prev)
+              setScenario('')
+            }}
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: 10,
+              cursor: 'pointer',
+              marginBottom: useScenario ? 12 : 0,
+              userSelect: 'none',
+            }}
+          >
+            <div style={{
+              width: 16,
+              height: 16,
+              border: `1px solid ${useScenario ? 'var(--green)' : 'var(--border)'}`,
+              background: useScenario ? 'var(--green-dark)' : 'transparent',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              flexShrink: 0,
+              transition: 'all 0.15s',
+            }}>
+              {useScenario && (
+                <span style={{ color: 'var(--green)', fontSize: 11 }}>✓</span>
+              )}
+            </div>
+            <span style={{
+              fontSize: 12,
+              color: useScenario ? 'var(--text)' : 'var(--text-dim)',
+              letterSpacing: 1,
+              transition: 'color 0.15s',
+            }}>
+              Set a custom opening scenario
+            </span>
+          </div>
+
+          {/* Expandable textarea */}
+          {useScenario && (
+            <div className="scanin">
+              <div style={{ position: 'relative' }}>
+                <textarea
+                  value={scenario}
+                  onChange={e => {
+                    if (e.target.value.length <= SCENARIO_LIMIT) {
+                      setScenario(e.target.value)
+                    }
+                  }}
+                  placeholder="e.g. I wake up on a spaceship with no memory of how I got here..."
+                  rows={3}
+                  style={{
+                    width: '100%',
+                    background: 'transparent',
+                    border: '1px solid var(--border-bright)',
+                    outline: 'none',
+                    color: 'var(--green)',
+                    fontFamily: 'var(--font-mono)',
+                    fontSize: 13,
+                    padding: '10px 12px',
+                    resize: 'none',
+                    caretColor: 'var(--green)',
+                    lineHeight: 1.6,
+                    letterSpacing: 0.5,
+                  }}
+                />
+                {/* Character counter */}
+                <div style={{
+                  position: 'absolute',
+                  bottom: 8,
+                  right: 10,
+                  fontSize: 10,
+                  letterSpacing: 1,
+                  color: scenario.length >= SCENARIO_LIMIT
+                    ? 'var(--red)'
+                    : scenario.length >= SCENARIO_LIMIT * 0.8
+                    ? 'var(--amber)'
+                    : 'var(--text-dim)',
+                }}>
+                  {scenario.length}/{SCENARIO_LIMIT}
+                </div>
+              </div>
+            </div>
+          )}
         </Section>
 
         {/* Begin */}

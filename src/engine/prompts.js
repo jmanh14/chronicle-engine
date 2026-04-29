@@ -1,7 +1,11 @@
-export function buildSetupPrompt({ genre, tone, protagonist }) {
+export function buildSetupPrompt({ genre, tone, protagonist, scenario }) {
+  const scenarioLine = scenario
+    ? `\nThe story should begin with this scenario: ${scenario}`
+    : ''
+
   return `You are a narrative engine for an interactive text adventure. Generate the opening beat of a ${tone.toLowerCase()} ${genre.toLowerCase()} story.
 
-The protagonist's name is ${protagonist}.
+The protagonist's name is ${protagonist}.${scenarioLine}
 
 Respond ONLY with a valid JSON object in exactly this structure, no markdown, no explanation:
 {
