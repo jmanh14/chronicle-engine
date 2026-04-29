@@ -56,17 +56,26 @@ function buildSentenceTimes(text, alignment) {
 
   const { characters, character_start_times_seconds, character_end_times_seconds } = alignment
 
-  // split into sentences
+  // split into sentences but preserve paragraph structure
   const sentenceRegex = /[^.!?]+[.!?]+/g
   const sentences = []
   let match
+  let lastEnd = 0
 
   while ((match = sentenceRegex.exec(text)) !== null) {
+    // check if there are newlines between last sentence and this one
+    const gap = text.slice(lastEnd, match.index)
+    if (gap.includes('\n') && sentences.length > 0) {
+      // add the newlines to the previous sentence
+      sentences[sentences.length - 1].text += gap.trimEnd()
+    }
+
     sentences.push({
-      text: match[0].trim(),
+      text: match[0],
       start: match.index,
       end: match.index + match[0].length,
     })
+    lastEnd = match.index + match[0].length
   }
 
   // map character indices to timestamps

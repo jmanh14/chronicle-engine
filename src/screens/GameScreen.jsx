@@ -40,7 +40,7 @@ export default function GameScreen() {
   const hasStarted                    = useRef(false)
   const hasRevealed                   = useRef(false)
   const bottomRef                     = useRef(null)
-  const beatKeyRef                    = useRef(0)
+  const [beatKey, setBeatKey] = useState(0)
 
   useEffect(() => {
     if (hasStarted.current) return
@@ -84,7 +84,7 @@ export default function GameScreen() {
   }
 
   async function revealBeat(beat, audioData) {
-    beatKeyRef.current += 1
+    setBeatKey(k => k + 1)
     setCurrentBeat(beat)
     setChoices(beat.choices)
     setInventory(beat.inventory)
@@ -134,6 +134,8 @@ export default function GameScreen() {
     setLoading(true)
     setError(null)
     setChoices([])
+    setSentenceTimes([])
+    setAudioTime(0)
     clearAudio()
     setAudioState('idle')
 
@@ -163,7 +165,7 @@ export default function GameScreen() {
         ]
         setStory(finalHistory)
         setMovieCard({ title: beat.title, genre: config.genre, tone: config.tone })
-        beatKeyRef.current += 1
+        setBeatKey(k => k + 1)
         setCurrentBeat(beat)
         setChoices([])
         setLoading(false)
@@ -196,29 +198,33 @@ export default function GameScreen() {
         setIsEnding(true)
 
       } else {
-        beatKeyRef.current += 1
-        setCurrentBeat(beat)
-        setChoices(beat.choices)
-        setLoading(false)
-        setTimeout(() => setTurn(t => t + 1), 50)
-
+        // prepare everything before touching currentBeat
+        let audioData = null
         if (narrateOn) {
-          let audioData = null
           try {
             audioData = await fetchAudio(beat.story, config.tone)
           } catch (audioErr) {
             console.error('Audio fetch failed:', audioErr)
           }
-          if (audioData) {
-            setSentenceTimes(audioData.sentenceTimes ?? [])
-            setAudioTime(0)
-            await playAudio(
-              audioData.audioSrc,
-              () => setAudioState('idle'),
-              (t) => setAudioTime(t)
-            )
-            setAudioState('playing')
-          }
+        }
+
+        // now set all state at once
+        setBeatKey(k => k + 1)
+        setCurrentBeat(beat)
+        setChoices(beat.choices)
+        setLoading(false)
+        setTimeout(() => setTurn(t => t + 1), 50)
+
+        // play audio after state is set
+        if (narrateOn && audioData) {
+          setSentenceTimes(audioData.sentenceTimes ?? [])
+          setAudioTime(0)
+          await playAudio(
+            audioData.audioSrc,
+            () => setAudioState('idle'),
+            (t) => setAudioTime(t)
+          )
+          setAudioState('playing')
         }
       }
 
@@ -407,7 +413,7 @@ export default function GameScreen() {
 
             {/* Current beat with glitch effect */}
             {currentBeat && !loading && (
-              <div className="scanin" key={beatKeyRef.current}>
+              <div className="scanin" key={beatKey}>
                 <GlitchText
                   text={currentBeat.story}
                   sentenceTimes={sentenceTimes}
