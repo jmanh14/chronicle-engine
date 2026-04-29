@@ -101,7 +101,7 @@ export default function EndingScreen({ config, story, movieCard, setMovieCard, n
       {/* Movie card */}
       {cardData && !loading && (
         <div className="scanin" style={{ width: '100%', maxWidth: 520 }}>
-          <MovieCard card={cardData} />
+          <MovieCard card={cardData} animate={true}/>
 
           {/* Actions */}
           <div style={{

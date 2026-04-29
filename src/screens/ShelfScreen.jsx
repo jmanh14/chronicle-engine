@@ -97,7 +97,7 @@ export default function ShelfScreen({ navigate }) {
       <div style={{ display: 'flex', flexDirection: 'column', gap: 28 }}>
         {stories.map((story) => (
           <div key={story.key} className="scanin">
-            <MovieCard card={story} />
+            <MovieCard card={story} animate={false}/>
             <div style={{ marginTop: 8, display: 'flex', justifyContent: 'flex-end' }}>
               <button
                 onClick={() => handleDelete(story.key)}
