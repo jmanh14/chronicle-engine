@@ -6,6 +6,8 @@ export default function BootSequence({ config, onComplete, beatReady }) {
   const [done, setDone]         = useState(false)
   const hasRun                  = useRef(false)
 
+  const SIGNAL_ACQUIRED = { text: 'SIGNAL ACQUIRED. READY TO TRANSMIT.', highlight: true }
+
   const BOOT_LINES_INITIAL = [
     { text: 'CHRONICLE ENGINE v1.0 — INITIALIZING...', delay: 0 },
     { text: 'LOADING NARRATIVE CORE...', delay: 600 },
@@ -15,8 +17,6 @@ export default function BootSequence({ config, onComplete, beatReady }) {
     { text: 'ESTABLISHING STORY THREAD...', delay: 2400 },
     { text: 'AWAITING NARRATIVE SIGNAL...', delay: 2900, amber: true },
   ]
-
-  const SIGNAL_ACQUIRED = { text: 'SIGNAL ACQUIRED. READY TO TRANSMIT.', highlight: true }
 
   useEffect(() => {
     if (hasRun.current) return
@@ -32,19 +32,13 @@ export default function BootSequence({ config, onComplete, beatReady }) {
 
   useEffect(() => {
     if (animDone && beatReady && !done) {
-      // add the final line first
       setLines(prev => [...prev, SIGNAL_ACQUIRED])
-      // wait for player to read it then transition
       setTimeout(() => {
         setDone(true)
         setTimeout(onComplete, 400)
       }, 1200)
     }
   }, [animDone, beatReady])
-
-  // find which line is currently "active"
-  const awaitingIndex = BOOT_LINES.findIndex(l => l.amber)
-  const acquiredIndex = BOOT_LINES.findIndex(l => l.highlight)
 
   return (
     <div style={{
@@ -74,22 +68,18 @@ export default function BootSequence({ config, onComplete, beatReady }) {
 
       <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
         {lines.map((line, i) => {
-          // amber line stays amber until beat is ready
-          const isAmberActive = line.amber && !beatReady
-          // amber line turns green when beat is ready
-          const isAmberDone = line.amber && beatReady
-          // highlight line only shows after beat is ready
+          const isAmberActive     = line.amber && !beatReady
+          const isAmberDone       = line.amber && beatReady
           const isHighlightActive = line.highlight && beatReady
 
           let color = 'var(--text-dim)'
-          let glow = 'none'
+          let glow  = 'none'
 
           if (isAmberActive) {
             color = 'var(--amber)'
-            glow = 'none'
           } else if (isAmberDone || isHighlightActive) {
             color = 'var(--green)'
-            glow = '0 0 10px var(--green)'
+            glow  = '0 0 10px var(--green)'
           }
 
           return (
@@ -108,13 +98,13 @@ export default function BootSequence({ config, onComplete, beatReady }) {
                 transition: 'color 0.4s ease, text-shadow 0.4s ease',
               }}
             >
-              <span style={{ color: isAmberActive ? 'var(--amber)' : 'var(--green-dim)' }}>&gt;</span>
+              <span style={{ color: isAmberActive ? 'var(--amber)' : 'var(--green-dim)' }}>
+                &gt;
+              </span>
               {line.text}
-              {/* blink cursor on amber line while waiting */}
               {isAmberActive && (
                 <span className="blink" style={{ color: 'var(--amber)' }}>█</span>
               )}
-              {/* blink cursor on last dim line while animating */}
               {!line.amber && !line.highlight && i === lines.length - 1 && !animDone && (
                 <span className="blink" style={{ color: 'var(--green)' }}>█</span>
               )}
