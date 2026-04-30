@@ -8,6 +8,7 @@ import StoryBeat from '../components/StoryBeat'
 import ChoiceButton from '../components/ChoiceButton'
 import BootSequence from '../components/BootSequence'
 import GlitchText from '../components/GlitchText'
+import ThemeToggle from '../components/ThemeToggle'
 
 export default function GameScreen() {
   const navigate     = useStore(s => s.navigate)
@@ -335,6 +336,7 @@ export default function GameScreen() {
                   <span style={{ color: 'var(--green)' }}>&gt;</span> {config.protagonist}
                 </div>
                 <div style={{ display: 'flex', gap: 6 }}>
+                  <ThemeToggle />
                   <button
                     onClick={handleManualNarrate}
                     style={{
