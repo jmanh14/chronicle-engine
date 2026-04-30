@@ -5,6 +5,13 @@ export const useStore = create((set) => ({
   screen: 'landing',
   navigate: (to) => set({ screen: to }),
 
+  // theme
+  theme: 'green',
+  setTheme: (theme) => {
+    document.documentElement.setAttribute('data-theme', theme === 'green' ? '' : theme)
+    set({ theme })
+  },
+
   // config
   config: null,
   setConfig: (config) => set({ config }),
