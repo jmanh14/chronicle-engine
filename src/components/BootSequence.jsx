@@ -13,7 +13,7 @@ export default function BootSequence({ config, onComplete, beatReady }) {
     { text: `TONE CALIBRATED: ${config.tone.toUpperCase()}`, delay: 1500 },
     { text: `PROTAGONIST IDENTIFIED: ${config.protagonist.toUpperCase()}`, delay: 1900 },
     { text: 'ESTABLISHING STORY THREAD...', delay: 2400 },
-    { text: 'AWAITING NARRATIVE SIGNAL...', delay: 2900 },
+    { text: 'AWAITING NARRATIVE SIGNAL...', delay: 2900, amber: true },
     { text: 'SIGNAL ACQUIRED. READY TO TRANSMIT.', delay: 3400, highlight: true },
   ]
 
@@ -21,9 +21,9 @@ export default function BootSequence({ config, onComplete, beatReady }) {
     if (hasRun.current) return
     hasRun.current = true
 
-    BOOT_LINES.forEach(({ text, delay, highlight }) => {
+    BOOT_LINES.forEach(({ text, delay, highlight, amber }) => {
       setTimeout(() => {
-        setLines(prev => [...prev, { text, highlight }])
+        setLines(prev => [...prev, { text, highlight, amber }])
       }, delay)
     })
     setTimeout(() => setAnimDone(true), 3400)
@@ -35,6 +35,10 @@ export default function BootSequence({ config, onComplete, beatReady }) {
       setTimeout(onComplete, 1200)
     }
   }, [animDone, beatReady])
+
+  // find which line is currently "active"
+  const awaitingIndex = BOOT_LINES.findIndex(l => l.amber)
+  const acquiredIndex = BOOT_LINES.findIndex(l => l.highlight)
 
   return (
     <div style={{
@@ -63,28 +67,54 @@ export default function BootSequence({ config, onComplete, beatReady }) {
       </div>
 
       <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-        {lines.map((line, i) => (
-          <div
-            key={i}
-            className="scanin"
-            style={{
-              fontFamily: 'var(--font-display)',
-              fontSize: 15,
-              letterSpacing: 2,
-              color: line.highlight ? 'var(--green)' : 'var(--text-dim)',
-              textShadow: line.highlight ? '0 0 10px var(--green)' : 'none',
-              display: 'flex',
-              alignItems: 'center',
-              gap: 10,
-            }}
-          >
-            <span style={{ color: 'var(--green-dim)' }}>&gt;</span>
-            {line.text}
-            {i === lines.length - 1 && !animDone && (
-              <span className="blink" style={{ color: 'var(--green)' }}>█</span>
-            )}
-          </div>
-        ))}
+        {lines.map((line, i) => {
+          // amber line stays amber until beat is ready
+          const isAmberActive = line.amber && !beatReady
+          // amber line turns green when beat is ready
+          const isAmberDone = line.amber && beatReady
+          // highlight line only shows after beat is ready
+          const isHighlightActive = line.highlight && beatReady
+
+          let color = 'var(--text-dim)'
+          let glow = 'none'
+
+          if (isAmberActive) {
+            color = 'var(--amber)'
+            glow = 'none'
+          } else if (isAmberDone || isHighlightActive) {
+            color = 'var(--green)'
+            glow = '0 0 10px var(--green)'
+          }
+
+          return (
+            <div
+              key={i}
+              className="scanin"
+              style={{
+                fontFamily: 'var(--font-mono)',
+                fontSize: 15,
+                letterSpacing: 2,
+                color,
+                textShadow: glow,
+                display: 'flex',
+                alignItems: 'center',
+                gap: 10,
+                transition: 'color 0.4s ease, text-shadow 0.4s ease',
+              }}
+            >
+              <span style={{ color: isAmberActive ? 'var(--amber)' : 'var(--green-dim)' }}>&gt;</span>
+              {line.text}
+              {/* blink cursor on amber line while waiting */}
+              {isAmberActive && (
+                <span className="blink" style={{ color: 'var(--amber)' }}>█</span>
+              )}
+              {/* blink cursor on last dim line while animating */}
+              {!line.amber && !line.highlight && i === lines.length - 1 && !animDone && (
+                <span className="blink" style={{ color: 'var(--green)' }}>█</span>
+              )}
+            </div>
+          )
+        })}
       </div>
 
       <div style={{
@@ -97,9 +127,10 @@ export default function BootSequence({ config, onComplete, beatReady }) {
       }}>
         <div style={{
           height: '100%',
-          background: 'var(--green)',
-          boxShadow: '0 0 8px var(--green)',
+          background: beatReady ? 'var(--green)' : 'var(--amber)',
+          boxShadow: `0 0 8px ${beatReady ? 'var(--green)' : 'var(--amber)'}`,
           animation: 'growBar 3.4s linear forwards',
+          transition: 'background 0.4s ease, box-shadow 0.4s ease',
         }} />
       </div>
 

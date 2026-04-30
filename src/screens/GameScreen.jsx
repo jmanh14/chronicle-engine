@@ -42,6 +42,8 @@ export default function GameScreen() {
   const hasRevealed                   = useRef(false)
   const bottomRef                     = useRef(null)
   const [beatKey, setBeatKey] = useState(0)
+  const currentBeatRef = useRef(null)
+  const scrollAreaRef = useRef(null)
 
   useEffect(() => {
     if (hasStarted.current) return
@@ -50,11 +52,17 @@ export default function GameScreen() {
   }, [])
 
   useEffect(() => {
+    if (!currentBeat) return
     const timer = setTimeout(() => {
-      bottomRef.current?.scrollIntoView({ behavior: 'smooth' })
-    }, 100)
+      currentBeatRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+    }, 150)
     return () => clearTimeout(timer)
-  }, [currentBeat, loading, story])
+  }, [beatKey])
+
+  useEffect(() => {
+    if (!narrateOn || audioState !== 'playing') return
+    currentBeatRef,current?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+  }, [sentenceTimes.findIndex(s => audioTime >= s.startTime && audioTime < s.endTime)])
 
   useEffect(() => {
     if (!booting && beatReady && pendingBeat && pendingUrl) {
@@ -387,7 +395,9 @@ export default function GameScreen() {
           </div>
 
           {/* Scrollable story area */}
-          <div style={{
+          <div 
+            ref={scrollAreaRef}
+            style={{
             flex: 1,
             overflowY: 'auto',
             padding: '16px',
@@ -415,7 +425,7 @@ export default function GameScreen() {
 
             {/* Current beat with glitch effect */}
             {currentBeat && !loading && (
-              <div className="scanin" key={beatKey}>
+              <div ref={currentBeatRef} className="scanin" key={beatKey}>
                 <GlitchText
                   text={currentBeat.story}
                   sentenceTimes={sentenceTimes}
@@ -464,8 +474,6 @@ export default function GameScreen() {
                 </button>
               </div>
             )}
-
-            <div ref={bottomRef} style={{ height: 8 }} />
           </div>
 
           {/* Fixed choices footer */}
