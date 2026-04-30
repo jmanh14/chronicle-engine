@@ -54,7 +54,13 @@ export default function GameScreen() {
   useEffect(() => {
     if (!currentBeat) return
     const timer = setTimeout(() => {
-      currentBeatRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+      if (currentBeatRef.current && scrollAreaRef.current) {
+        const beatTop = currentBeatRef.current.offsetTop
+        scrollAreaRef.current.scrollTo({
+          top: beatTop - 16,
+          behavior: 'smooth',
+        })
+      }
     }, 150)
     return () => clearTimeout(timer)
   }, [beatKey])
@@ -393,10 +399,10 @@ export default function GameScreen() {
           <div 
             ref={scrollAreaRef}
             style={{
-            flex: 1,
-            overflowY: 'auto',
-            padding: '16px',
-            WebkitOverflowScrolling: 'touch',
+              flex: 1,
+              overflowY: 'auto',
+              padding: '16px',
+              WebkitOverflowScrolling: 'touch',
           }}>
 
             {/* History beats */}
