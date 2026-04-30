@@ -60,11 +60,6 @@ export default function GameScreen() {
   }, [beatKey])
 
   useEffect(() => {
-    if (!narrateOn || audioState !== 'playing') return
-    currentBeatRef,current?.scrollIntoView({ behavior: 'smooth', block: 'start' })
-  }, [sentenceTimes.findIndex(s => audioTime >= s.startTime && audioTime < s.endTime)])
-
-  useEffect(() => {
     if (!booting && beatReady && pendingBeat && pendingUrl) {
       if (hasRevealed.current) return
       hasRevealed.current = true
