@@ -6,7 +6,7 @@ export default function BootSequence({ config, onComplete, beatReady }) {
   const [done, setDone]         = useState(false)
   const hasRun                  = useRef(false)
 
-  const BOOT_LINES = [
+  const BOOT_LINES_INITIAL = [
     { text: 'CHRONICLE ENGINE v1.0 — INITIALIZING...', delay: 0 },
     { text: 'LOADING NARRATIVE CORE...', delay: 600 },
     { text: `GENRE DETECTED: ${config.genre.toUpperCase()}`, delay: 1100 },
@@ -14,25 +14,31 @@ export default function BootSequence({ config, onComplete, beatReady }) {
     { text: `PROTAGONIST IDENTIFIED: ${config.protagonist.toUpperCase()}`, delay: 1900 },
     { text: 'ESTABLISHING STORY THREAD...', delay: 2400 },
     { text: 'AWAITING NARRATIVE SIGNAL...', delay: 2900, amber: true },
-    { text: 'SIGNAL ACQUIRED. READY TO TRANSMIT.', delay: 3400, highlight: true },
   ]
+
+  const SIGNAL_ACQUIRED = { text: 'SIGNAL ACQUIRED. READY TO TRANSMIT.', highlight: true }
 
   useEffect(() => {
     if (hasRun.current) return
     hasRun.current = true
 
-    BOOT_LINES.forEach(({ text, delay, highlight, amber }) => {
+    BOOT_LINES_INITIAL.forEach(({ text, delay, amber }) => {
       setTimeout(() => {
-        setLines(prev => [...prev, { text, highlight, amber }])
+        setLines(prev => [...prev, { text, amber }])
       }, delay)
     })
-    setTimeout(() => setAnimDone(true), 3400)
+    setTimeout(() => setAnimDone(true), 2900)
   }, [])
 
   useEffect(() => {
     if (animDone && beatReady && !done) {
-      setDone(true)
-      setTimeout(onComplete, 1200)
+      // add the final line first
+      setLines(prev => [...prev, SIGNAL_ACQUIRED])
+      // wait for player to read it then transition
+      setTimeout(() => {
+        setDone(true)
+        setTimeout(onComplete, 400)
+      }, 1200)
     }
   }, [animDone, beatReady])
 
